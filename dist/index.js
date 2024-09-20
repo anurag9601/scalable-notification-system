@@ -29,12 +29,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importStar(require("express"));
 const db_1 = require("./database/db");
 const dotenv_1 = __importDefault(require("dotenv"));
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const user_router_1 = __importDefault(require("./routers/user.router"));
+const message_router_1 = __importDefault(require("./routers/message.router"));
 const app = (0, express_1.default)();
 dotenv_1.default.config();
 app.use(express_1.default.json());
 app.use((0, express_1.urlencoded)({ extended: false }));
+app.use((0, cookie_parser_1.default)());
 app.use("/api/user", user_router_1.default);
+app.use("/api/message", message_router_1.default);
 const port = process.env.PORT || 8000;
 app.listen(port, () => {
     console.log(`Server is running on port: ${port}`);

@@ -20,17 +20,21 @@ export async function userProducer(email: string, hashedPassword: string) {
     console.log("User Producer disconnected");
 }
 
-export async function emailProducer() {
+export async function emailProducer(sendBy: string, receiveBy: string, message: string, type: string) {
+    console.log("Email Producer connecting...");
     await producer.connect();
+    console.log("Email Producer connected successfully");
     await producer.send({
         topic: "email-message",
         messages: [{
-            key: "user",
-            value: "test",
-            partition: 0
+            key: "email",
+            value: JSON.stringify({ sendBy, receiveBy, message }),
+            partition: type === "spam" ? 0 : 1,
         }]
     })
+    console.log("Email Produced email");
     await producer.disconnect()
+    console.log("Email Producer disconnected");
 }
 
 export async function smsProducer() {

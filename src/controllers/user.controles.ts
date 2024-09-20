@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { userModel } from "../models/user.module";
 import bcrypt from "bcrypt";
 import { userProducer } from "../kafka/producer";
-import userConsumer from "../kafka/consumer";
+import { userConsumer } from "../kafka/consumer";
 
 export const handleUserSignup = async (req: Request, res: Response) => {
     try {
@@ -23,8 +23,10 @@ export const handleUserSignup = async (req: Request, res: Response) => {
 
         await userProducer(email, hashedPassword);
 
-        function returnResponse(email: string, _id: string) {
-            return res.status(201).json({
+        function returnResponse(email: string, _id: string, token: string) {
+            return res.cookie("jwt", token, {
+                maxAge: 15 * 24 * 60 * 60 * 1000
+            }).status(201).json({
                 status: "successful",
                 data: {
                     email,
