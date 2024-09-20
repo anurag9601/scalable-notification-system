@@ -16,7 +16,7 @@ exports.handleUserSignup = void 0;
 const user_module_1 = require("../models/user.module");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const producer_1 = require("../kafka/producer");
-const consumer_1 = __importDefault(require("../kafka/consumer"));
+const consumer_1 = require("../kafka/consumer");
 const handleUserSignup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email, password } = req.body;
@@ -30,8 +30,10 @@ const handleUserSignup = (req, res) => __awaiter(void 0, void 0, void 0, functio
         const salt = yield bcrypt_1.default.genSalt(10);
         const hashedPassword = yield bcrypt_1.default.hash(password, salt);
         yield (0, producer_1.userProducer)(email, hashedPassword);
-        function returnResponse(email, _id) {
-            return res.status(201).json({
+        function returnResponse(email, _id, token) {
+            return res.cookie("jwt", token, {
+                maxAge: 15 * 24 * 60 * 60 * 1000
+            }).status(201).json({
                 status: "successful",
                 data: {
                     email,
@@ -39,7 +41,7 @@ const handleUserSignup = (req, res) => __awaiter(void 0, void 0, void 0, functio
                 }
             });
         }
-        yield (0, consumer_1.default)("user", returnResponse);
+        yield (0, consumer_1.userConsumer)("user", returnResponse);
     }
     catch (err) {
         console.log("Error in handleUserSignup function", err);

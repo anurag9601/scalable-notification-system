@@ -9,9 +9,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = userConsumer;
+exports.userConsumer = userConsumer;
+exports.emailConsumer = emailConsumer;
 const admin_1 = require("./admin");
 const user_module_1 = require("../models/user.module");
+const jwt_1 = require("../services/jwt");
+const email_module_1 = require("../models/email.module");
 // const group = process.argv[2];
 function userConsumer(group, returnResponse) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -19,7 +22,7 @@ function userConsumer(group, returnResponse) {
         console.log("Consumer connecting...");
         yield consumer.connect();
         console.log("Consumer connected successfully");
-        yield consumer.subscribe({ topics: ["user"] });
+        yield consumer.subscribe({ topic: "user" });
         yield consumer.run({
             eachMessage: (_a) => __awaiter(this, [_a], void 0, function* ({ message, pause }) {
                 var _b;
@@ -32,7 +35,8 @@ function userConsumer(group, returnResponse) {
                             password: value.password
                         });
                         if (newUser) {
-                            yield returnResponse(newUser.email, newUser._id);
+                            const token = yield (0, jwt_1.createUserToken)(newUser);
+                            yield returnResponse(newUser.email, newUser._id, token);
                         }
                     }
                     catch (err) {
@@ -41,6 +45,50 @@ function userConsumer(group, returnResponse) {
                         pause();
                         setTimeout(() => {
                             consumer.resume([{ topic: "user" }]);
+                        }, 60 * 1000);
+                    }
+                }
+            })
+        });
+    });
+}
+function emailConsumer(group, returnResponse) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const consumer = yield admin_1.kafka.consumer({ groupId: group });
+        console.log("Consumer connecting...");
+        yield consumer.connect();
+        yield consumer.subscribe({ topic: "email-message" });
+        yield consumer.run({
+            eachMessage: (_a) => __awaiter(this, [_a], void 0, function* ({ message, pause }) {
+                var _b;
+                const values = (_b = message.value) === null || _b === void 0 ? void 0 : _b.toString();
+                console.log("values", values);
+                if (values) {
+                    const value = JSON.parse(values);
+                    console.log("value", value);
+                    try {
+                        const newEmail = yield email_module_1.emailModel.create({
+                            sendBy: value.sendBy,
+                            receiveBy: value.receiveBy,
+                            message: value.message,
+                        });
+                        console.log("newEmail", newEmail);
+                        if (newEmail) {
+                            const resValues = {
+                                _id: newEmail._id,
+                                sendBy: newEmail.sendBy,
+                                receiveBy: newEmail.receiveBy,
+                                message: newEmail.message,
+                            };
+                            yield returnResponse(resValues);
+                        }
+                    }
+                    catch (err) {
+                        console.log("error", err);
+                        console.log("Something went wrong");
+                        pause();
+                        setTimeout(() => {
+                            consumer.resume([{ topic: "email-message" }]);
                         }, 60 * 1000);
                     }
                 }

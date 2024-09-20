@@ -33,18 +33,22 @@ function userProducer(email, hashedPassword) {
         console.log("User Producer disconnected");
     });
 }
-function emailProducer() {
+function emailProducer(sendBy, receiveBy, message, type) {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log("Email Producer connecting...");
         yield producer.connect();
+        console.log("Email Producer connected successfully");
         yield producer.send({
             topic: "email-message",
             messages: [{
-                    key: "user",
-                    value: "test",
-                    partition: 0
+                    key: "email",
+                    value: JSON.stringify({ sendBy, receiveBy, message }),
+                    partition: type === "spam" ? 0 : 1,
                 }]
         });
+        console.log("Email Produced email");
         yield producer.disconnect();
+        console.log("Email Producer disconnected");
     });
 }
 function smsProducer() {
