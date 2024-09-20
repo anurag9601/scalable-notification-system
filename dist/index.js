@@ -29,10 +29,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importStar(require("express"));
 const db_1 = require("./database/db");
 const dotenv_1 = __importDefault(require("dotenv"));
+const user_router_1 = __importDefault(require("./routers/user.router"));
 const app = (0, express_1.default)();
 dotenv_1.default.config();
 app.use(express_1.default.json());
 app.use((0, express_1.urlencoded)({ extended: false }));
+app.use("/api/user", user_router_1.default);
 const port = process.env.PORT || 8000;
 app.listen(port, () => {
     console.log(`Server is running on port: ${port}`);

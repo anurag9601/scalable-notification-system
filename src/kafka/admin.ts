@@ -6,7 +6,7 @@ export const kafka = new Kafka({
 });
 
 
-async function init(){
+export async function kafkaAdmin(){
     const admin = kafka.admin();
     console.log("Admin connecting...");
     await admin.connect();
@@ -15,7 +15,7 @@ async function init(){
         topics:[
             {
                 topic: "user",
-                numPartitions: 2,
+                numPartitions: 1,
             },
             {
                 topic: "email-message",
@@ -34,5 +34,3 @@ async function init(){
     await admin.disconnect();
     console.log("Admin disconnected...");
 }
-
-init();

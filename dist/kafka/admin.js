@@ -10,12 +10,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.kafka = void 0;
+exports.kafkaAdmin = kafkaAdmin;
 const kafkajs_1 = require("kafkajs");
 exports.kafka = new kafkajs_1.Kafka({
     clientId: "my-app",
     brokers: ["192.168.31.181:9092"],
 });
-function init() {
+function kafkaAdmin() {
     return __awaiter(this, void 0, void 0, function* () {
         const admin = exports.kafka.admin();
         console.log("Admin connecting...");
@@ -25,7 +26,7 @@ function init() {
             topics: [
                 {
                     topic: "user",
-                    numPartitions: 2,
+                    numPartitions: 1,
                 },
                 {
                     topic: "email-message",
@@ -45,4 +46,3 @@ function init() {
         console.log("Admin disconnected...");
     });
 }
-init();

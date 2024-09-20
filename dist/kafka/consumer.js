@@ -9,23 +9,42 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = userConsumer;
 const admin_1 = require("./admin");
-const group = process.argv[2];
-const consumer = admin_1.kafka.consumer({ groupId: group });
-function init() {
+const user_module_1 = require("../models/user.module");
+// const group = process.argv[2];
+function userConsumer(group, returnResponse) {
     return __awaiter(this, void 0, void 0, function* () {
+        const consumer = admin_1.kafka.consumer({ groupId: group });
         console.log("Consumer connecting...");
         yield consumer.connect();
         console.log("Consumer connected successfully");
-        yield consumer.subscribe({ topics: ["user", "email-message", "sms-message", "imp-message"], fromBeginning: true });
+        yield consumer.subscribe({ topics: ["user"] });
         yield consumer.run({
-            eachMessage: (_a) => __awaiter(this, [_a], void 0, function* ({ topic, partition, message }) {
+            eachMessage: (_a) => __awaiter(this, [_a], void 0, function* ({ message, pause }) {
                 var _b;
-                console.log(`{ topic:${topic},
-                partition:${partition},
-                message: ${(_b = message.value) === null || _b === void 0 ? void 0 : _b.toString()}, }`);
+                const values = (_b = message.value) === null || _b === void 0 ? void 0 : _b.toString();
+                if (values) {
+                    const value = JSON.parse(values);
+                    try {
+                        const newUser = yield user_module_1.userModel.create({
+                            email: value.email,
+                            password: value.password
+                        });
+                        if (newUser) {
+                            yield returnResponse(newUser.email, newUser._id);
+                        }
+                    }
+                    catch (err) {
+                        console.log("error", err);
+                        console.log("Something went wrong");
+                        pause();
+                        setTimeout(() => {
+                            consumer.resume([{ topic: "user" }]);
+                        }, 60 * 1000);
+                    }
+                }
             })
         });
     });
 }
-init();

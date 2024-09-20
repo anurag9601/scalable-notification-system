@@ -2,24 +2,23 @@ import { kafka } from "./admin";
 
 const producer = kafka.producer();
 
-export async function userProducer() {
-    console.log("Producer connecting...");
+export async function userProducer(email: string, hashedPassword: string) {
+    console.log("User Producer connecting...");
     await producer.connect();
-    console.log("Producer connected successfully");
+    console.log("User Producer connected successfully");
     await producer.send({
         topic: "user",
         messages: [{
-            key: "user",
-            value: "test",
-            partition: 0
+            key: "userInfo",
+            value: JSON.stringify({ email, password: hashedPassword }),
+            partition: 0,
+
         }]
     })
-    console.log("Produced message");
+    console.log("User Produced user");
     await producer.disconnect();
-    console.log("Producer disconnected");
+    console.log("User Producer disconnected");
 }
-
-userProducer();
 
 export async function emailProducer() {
     await producer.connect();

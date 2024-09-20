@@ -15,25 +15,24 @@ exports.smsProducer = smsProducer;
 exports.impMessageProducer = impMessageProducer;
 const admin_1 = require("./admin");
 const producer = admin_1.kafka.producer();
-function userProducer() {
+function userProducer(email, hashedPassword) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log("Producer connecting...");
+        console.log("User Producer connecting...");
         yield producer.connect();
-        console.log("Producer connected successfully");
+        console.log("User Producer connected successfully");
         yield producer.send({
             topic: "user",
             messages: [{
-                    key: "user",
-                    value: "test",
-                    partition: 0
+                    key: "userInfo",
+                    value: JSON.stringify({ email, password: hashedPassword }),
+                    partition: 0,
                 }]
         });
-        console.log("Produced message");
+        console.log("User Produced user");
         yield producer.disconnect();
-        console.log("Producer disconnected");
+        console.log("User Producer disconnected");
     });
 }
-userProducer();
 function emailProducer() {
     return __awaiter(this, void 0, void 0, function* () {
         yield producer.connect();
